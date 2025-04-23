@@ -1,20 +1,37 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import redis
 import psycopg2
 import pika
 
 # Import configuration
-try:
-    from app.config import APP_NAME, APP_VERSION, API_PREFIX
-except ImportError:
-    APP_NAME = "Order Matching System"
-    APP_VERSION = "0.1.0"
-    API_PREFIX = "/api/v1"
+from app.config import APP_NAME, APP_VERSION, API_PREFIX
 
+# Import routers
+from app.api.orders import router as orders_router
+from app.api.trades import router as trades_router
+from app.api.websockets import router as websockets_router
+
+# Define lifespan context manager
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    # Initialize database
+    from app.db.init_db import init_db
+    init_db()
+    
+    yield  # This is where the app runs
+    
+    # Shutdown logic
+    # Cleanup resources
+    pass
+
+# Create the FastAPI app with lifespan
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -72,6 +89,7 @@ async def test_connections():
     
     return results
 
-# Include other API routes later
-# app.include_router(orders_router, prefix=API_PREFIX)
-# app.include_router(trades_router, prefix=API_PREFIX)
+# Include API routers
+app.include_router(orders_router, prefix=f"{API_PREFIX}/orders", tags=["orders"])
+app.include_router(trades_router, prefix=f"{API_PREFIX}/trades", tags=["trades"])
+app.include_router(websockets_router, tags=["websockets"])
