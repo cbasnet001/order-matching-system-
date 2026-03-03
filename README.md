@@ -433,14 +433,3 @@ docker-compose down -v  # Remove volumes
 docker-compose up      # Recreate everything
 ```
 
-## 📝 License
-
-[Add your license information]
-
-## 👥 Contributing
-
-[Add contribution guidelines]
-
-## 📞 Support
-
-[Add support contact information]
